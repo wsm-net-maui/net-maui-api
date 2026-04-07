@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="net-maui-api.csproj" />
+  <Project Path="Wsm.Aplication/Wsm.Aplication.csproj" Id="2c6e4f52-cfb0-46cc-9a2f-29b8b62a25a9" />
+  <Project Path="Wsm.Domain/Wsm.Domain.csproj" Id="c627bff1-bc39-4a99-ab04-fdf4f575c354" />
+  <Project Path="Wsm.Infra.Core/Wsm.Infra.Core.csproj" Id="a729cc2a-966f-49d7-8637-2e867a83f1a6" />
+  <Project Path="Wsm.Infra.Estrutura/Wsm.Infra.Estrutura.csproj" Id="485b34ee-e9e2-42c9-a82d-12990714e262" />
+  <Project Path="Wsm.Tests/Wsm.Tests.csproj" Id="ad21aee4-b30d-4924-813d-0b9fda6c33d5" />
+</Solution>

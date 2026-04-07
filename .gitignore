@@ -398,4 +398,8 @@ FodyWeavers.xsd
 *.msp
 
 # JetBrains Rider
+
+# Process ID files
+*.pid
+app.pid
 *.sln.iml
