@@ -64,15 +64,21 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+var host = builder.Configuration["DBHOST"] ?? "localhost";
+var port = builder.Configuration["DBPORT"] ?? "3306";
+var password = builder.Configuration["DBPASSWORD"] ?? "numSey";
+string mySqlConnection = $"server={host};port={port};user=root;password={password};database=controle_estoque";
+
 // Configuração do DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
 
 // Repositórios
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped<IMovimentacaoEstoqueRepository, MovimentacaoEstoqueRepository>();
+builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Services
@@ -80,6 +86,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<IMovimentacaoEstoqueService, MovimentacaoEstoqueService>();
+builder.Services.AddScoped<IPedidoService, PedidoService>();
 
 // Infraestrutura
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -87,9 +94,12 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 // Controllers
 builder.Services.AddControllers();
 
-// OpenAPI/Swagger
+// OpenAPI/Swagger com suporte a JWT Bearer
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() { Title = "API Controle de Estoque", Version = "v1" });
+});
 
 var app = builder.Build();
 
