@@ -1,4 +1,3 @@
-using Wsm.Aplication.DTOs.Movimentacoes;
 using Wsm.Aplication.DTOs.Pedidos;
 using Wsm.Aplication.Interfaces;
 using Wsm.Aplication.Mappers;
@@ -12,19 +11,25 @@ namespace Wsm.Aplication.Services;
 public class PedidoService : IPedidoService
 {
     private readonly IPedidoRepository _pedidoRepository;
+    private readonly ICarrinhoRepository _carrinhoRepository;
     private readonly IProdutoRepository _produtoRepository;
     private readonly IMovimentacaoEstoqueRepository _movimentacaoRepository;
+    private readonly IVoucherRepository _voucherRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public PedidoService(
         IPedidoRepository pedidoRepository,
+        ICarrinhoRepository carrinhoRepository,
         IProdutoRepository produtoRepository,
         IMovimentacaoEstoqueRepository movimentacaoRepository,
+        IVoucherRepository voucherRepository,
         IUnitOfWork unitOfWork)
     {
         _pedidoRepository = pedidoRepository;
+        _carrinhoRepository = carrinhoRepository;
         _produtoRepository = produtoRepository;
         _movimentacaoRepository = movimentacaoRepository;
+        _voucherRepository = voucherRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -67,7 +72,57 @@ public class PedidoService : IPedidoService
             pedido.AdicionarItem(produto.Id, produto.Nome, item.Quantidade, produto.PrecoVenda);
         }
 
+        if (!string.IsNullOrWhiteSpace(request.CodigoVoucher))
+        {
+            var voucher = await _voucherRepository.ObterPorCodigoAsync(request.CodigoVoucher)
+                ?? throw new KeyNotFoundException("Voucher não encontrado");
+
+            pedido.AplicarVoucher(voucher);
+        }
+
         await _pedidoRepository.AdicionarAsync(pedido);
+        await _unitOfWork.CommitAsync();
+
+        var pedidoCompleto = await _pedidoRepository.ObterPorIdAsync(pedido.Id);
+        return PedidoMapper.ToResponseDto(pedidoCompleto!);
+    }
+
+    public async Task<PedidoResponseDto> CriarDoCarrinhoAsync(Guid usuarioId)
+    {
+        if (usuarioId == Guid.Empty)
+            throw new UnauthorizedAccessException("Usuário não autenticado");
+
+        var carrinho = await _carrinhoRepository.ObterPorUsuarioAsync(usuarioId)
+            ?? throw new KeyNotFoundException("Carrinho não encontrado");
+
+        if (!carrinho.Itens.Any())
+            throw new InvalidOperationException("Carrinho sem itens");
+
+        var pedido = new Pedido(usuarioId);
+
+        foreach (var item in carrinho.Itens)
+        {
+            var produto = await _produtoRepository.ObterPorIdAsync(item.ProdutoId)
+                ?? throw new KeyNotFoundException($"Produto não encontrado: {item.ProdutoId}");
+
+            if (!produto.Ativo)
+                throw new InvalidOperationException($"Produto inativo: {produto.Nome}");
+
+            pedido.AdicionarItem(produto.Id, produto.Nome, item.Quantidade, produto.PrecoVenda);
+        }
+
+        if (carrinho.VoucherId.HasValue)
+        {
+            var voucher = await _voucherRepository.ObterPorIdAsync(carrinho.VoucherId.Value)
+                ?? throw new KeyNotFoundException("Voucher do carrinho não encontrado");
+
+            pedido.AplicarVoucher(voucher);
+        }
+
+        await _pedidoRepository.AdicionarAsync(pedido);
+        carrinho.Limpar();
+        _carrinhoRepository.Atualizar(carrinho);
+
         await _unitOfWork.CommitAsync();
 
         var pedidoCompleto = await _pedidoRepository.ObterPorIdAsync(pedido.Id);
@@ -98,6 +153,15 @@ public class PedidoService : IPedidoService
                 observacao: $"Saída por conclusão do pedido {pedido.Numero}");
 
             await _movimentacaoRepository.AdicionarAsync(movimentacao);
+        }
+
+        if (pedido.VoucherId.HasValue)
+        {
+            var voucher = await _voucherRepository.ObterPorIdAsync(pedido.VoucherId.Value)
+                ?? throw new KeyNotFoundException("Voucher do pedido não encontrado");
+
+            voucher.RegistrarUso();
+            _voucherRepository.Atualizar(voucher);
         }
 
         pedido.Concluir();

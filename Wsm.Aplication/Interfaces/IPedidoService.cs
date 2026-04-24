@@ -8,6 +8,7 @@ public interface IPedidoService
     Task<PedidoResponseDto?> ObterPorIdAsync(Guid id);
     Task<IEnumerable<PedidoResponseDto>> ObterPorUsuarioAsync(Guid usuarioId);
     Task<PedidoResponseDto> CriarAsync(CriarPedidoRequestDto request, Guid usuarioId);
+    Task<PedidoResponseDto> CriarDoCarrinhoAsync(Guid usuarioId);
     Task<PedidoResponseDto> ConcluirAsync(Guid id, Guid usuarioId);
     Task CancelarAsync(Guid id);
 }

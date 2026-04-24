@@ -15,6 +15,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<MovimentacaoEstoque> MovimentacoesEstoque => Set<MovimentacaoEstoque>();
     public DbSet<Pedido> Pedidos => Set<Pedido>();
     public DbSet<PedidoItem> PedidoItens => Set<PedidoItem>();
+    public DbSet<Voucher> Vouchers => Set<Voucher>();
+    public DbSet<Carrinho> Carrinhos => Set<Carrinho>();
+    public DbSet<CarrinhoItem> CarrinhoItens => Set<CarrinhoItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

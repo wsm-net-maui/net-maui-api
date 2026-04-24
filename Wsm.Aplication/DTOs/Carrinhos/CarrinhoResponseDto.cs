@@ -1,21 +1,15 @@
-using Wsm.Domain.Enums;
+namespace Wsm.Aplication.DTOs.Carrinhos;
 
-namespace Wsm.Aplication.DTOs.Pedidos;
-
-public class PedidoResponseDto
+public class CarrinhoResponseDto
 {
     public Guid Id { get; set; }
-    public string Numero { get; set; } = string.Empty;
     public Guid UsuarioId { get; set; }
-    public string UsuarioNome { get; set; } = string.Empty;
-    public StatusPedido Status { get; set; }
-    public string StatusDescricao { get; set; } = string.Empty;
     public Guid? VoucherId { get; set; }
     public string? VoucherCodigo { get; set; }
     public decimal ValorBruto { get; set; }
     public decimal ValorDesconto { get; set; }
     public decimal ValorTotal { get; set; }
-    public List<PedidoItemResponseDto> Itens { get; set; } = new();
+    public List<CarrinhoItemResponseDto> Itens { get; set; } = new();
     public DateTime CriadoEm { get; set; }
     public DateTime? AtualizadoEm { get; set; }
 }

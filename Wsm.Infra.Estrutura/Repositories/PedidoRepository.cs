@@ -15,6 +15,7 @@ public class PedidoRepository : Repository<Pedido>, IPedidoRepository
     {
         return await _dbSet
             .Include(p => p.Usuario)
+            .Include(p => p.Voucher)
             .Include(p => p.Itens)
             .ThenInclude(i => i.Produto)
             .FirstOrDefaultAsync(p => p.Id == id);
@@ -24,6 +25,7 @@ public class PedidoRepository : Repository<Pedido>, IPedidoRepository
     {
         return await _dbSet
             .Include(p => p.Usuario)
+            .Include(p => p.Voucher)
             .Include(p => p.Itens)
             .ThenInclude(i => i.Produto)
             .OrderByDescending(p => p.CriadoEm)
@@ -34,6 +36,7 @@ public class PedidoRepository : Repository<Pedido>, IPedidoRepository
     {
         return await _dbSet
             .Include(p => p.Usuario)
+            .Include(p => p.Voucher)
             .Include(p => p.Itens)
             .ThenInclude(i => i.Produto)
             .FirstOrDefaultAsync(p => p.Numero == numero);
@@ -42,6 +45,7 @@ public class PedidoRepository : Repository<Pedido>, IPedidoRepository
     public async Task<IEnumerable<Pedido>> ObterPorUsuarioAsync(Guid usuarioId)
     {
         return await _dbSet
+            .Include(p => p.Voucher)
             .Include(p => p.Itens)
             .ThenInclude(i => i.Produto)
             .Where(p => p.UsuarioId == usuarioId)
