@@ -1,0 +1,15 @@
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/TestResults
+**/*.user
+**/*.suo
+**/*.cache
+**/*.pdb
+**/*.mdb
+.git
+.gitignore
+README.md
+LICENSE
+Logs

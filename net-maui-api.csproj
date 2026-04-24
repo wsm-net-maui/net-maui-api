@@ -10,8 +10,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+    <Compile Remove="Wsm.Aplication/**/*.cs" />
+    <Compile Remove="Wsm.Domain/**/*.cs" />
+    <Compile Remove="Wsm.Infra.Core/**/*.cs" />
+    <Compile Remove="Wsm.Infra.Estrutura/**/*.cs" />
+    <Compile Remove="Wsm.Tests/**/*.cs" />
+
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

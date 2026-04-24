@@ -1,0 +1,10 @@
+services:
+  api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    volumes:
+      - ./Logs:/app/Logs
+
+  mysql:
+    ports:
+      - "3306:3306"

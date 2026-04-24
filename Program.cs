@@ -45,6 +45,8 @@ builder.Services.AddAuthorizationConfig(builder.Configuration);
 
 var app = builder.Build();
 
+await InicializarBancoDeDadosAsync(app.Services);
+
 app.UseExceptionHandlingMiddleware();
 
 app.Use(async (context, next) =>
@@ -88,4 +90,32 @@ finally
 {
     Log.Information("Encerrando aplicação");
     Log.CloseAndFlush();
+}
+
+static async Task InicializarBancoDeDadosAsync(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseInitialization");
+
+const int maxTentativas = 10;
+var delay = TimeSpan.FromSeconds(5);
+
+for (var tentativa = 1; tentativa <= maxTentativas; tentativa++)
+{
+    try
+    {
+        dbContext.Database.Migrate();
+        logger.LogInformation("Banco de dados inicializado com migrations.");
+
+        return;
+    }
+    catch (Exception ex) when (tentativa < maxTentativas)
+    {
+        logger.LogWarning(ex, "Tentativa {Tentativa}/{MaxTentativas} de inicializar o banco falhou. Nova tentativa em {Delay}s.", tentativa, maxTentativas, delay.TotalSeconds);
+        await Task.Delay(delay);
+    }
+}
+
+throw new InvalidOperationException("Não foi possível inicializar o banco de dados após múltiplas tentativas.");
 }
