@@ -18,6 +18,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<Voucher> Vouchers => Set<Voucher>();
     public DbSet<Carrinho> Carrinhos => Set<Carrinho>();
     public DbSet<CarrinhoItem> CarrinhoItens => Set<CarrinhoItem>();
+    public DbSet<FuncionarioPerfil> FuncionarioPerfis => Set<FuncionarioPerfil>();
+    public DbSet<ClientePerfil> ClientePerfis => Set<ClientePerfil>();
+    public DbSet<Servico> Servicos => Set<Servico>();
+    public DbSet<HorarioAtendimento> HorariosAtendimento => Set<HorarioAtendimento>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

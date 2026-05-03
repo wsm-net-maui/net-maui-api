@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using net_maui_api.Attributes;
@@ -94,9 +93,4 @@ public class CarrinhosController : BaseController
         return Created(pedido, "Pedido criado a partir do carrinho com sucesso");
     }
 
-    private Guid ObterUsuarioId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
     }
-}

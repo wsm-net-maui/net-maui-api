@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using net_maui_api.Attributes;
@@ -55,9 +54,4 @@ public class MovimentacoesEstoqueController : BaseController
         return Created(movimentacao, "Movimentação registrada com sucesso");
     }
 
-    private Guid ObterUsuarioId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
     }
-}

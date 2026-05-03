@@ -17,7 +17,6 @@ namespace net_maui_api.Configuration
             services.Configure<JwtSettings>(appSettingsSection);
 
             var appSettings = appSettingsSection.Get<JwtSettings>();
-            var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
 
             var secretKey = appSettingsSection.Get<JwtSettings>()?.SecretKey ?? throw new InvalidOperationException("JWT SecretKey não configurada");
 
@@ -47,18 +46,17 @@ namespace net_maui_api.Configuration
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = "JWT Authorization header usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
+                    Description = "Insira o token JWT. Exemplo: Bearer {seu_token}",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    BearerFormat = "JWT"
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
                 });
 
                 options.AddSecurityRequirement(document =>
                 {
                     var requirement = new OpenApiSecurityRequirement();
-                    requirement[new OpenApiSecuritySchemeReference("Bearer", document, "JWT Bearer")] = new List<string>();
+                    requirement[new OpenApiSecuritySchemeReference("Bearer", document)] = new List<string>();
                     return requirement;
                 });
             });

@@ -29,13 +29,15 @@ try
 
 builder.Services.AddAuthorization();
 
-var host = builder.Configuration["DBHOST"] ?? "localhost";
-var port = builder.Configuration["DBPORT"] ?? "3306";
-var password = builder.Configuration["DBPASSWORD"] ?? "numSey";
-string mySqlConnection = $"server={host};port={port};user=root;password={password};database=controle_estoque";
+var mySqlConnection = builder.Configuration.GetConnectionString("MySql")
+    ?? $"server={builder.Configuration["DBHOST"] ?? "localhost"};port={builder.Configuration["DBPORT"] ?? "3306"};user=root;password={builder.Configuration["DBPASSWORD"] ?? "numSey"};database=controle_estoque";
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
+    options.UseMySql(mySqlConnection, new MySqlServerVersion(new Version(8, 0, 36)),
+        mySqlOptions => mySqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)));
 
 builder.Services.AddControllers();
 

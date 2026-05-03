@@ -58,7 +58,8 @@ public class AuthService : IAuthService
             throw new ArgumentException("Email já cadastrado");
 
         var senhaHash = GerarHashSenha(request.Senha);
-        var usuario = new Usuario(request.Nome, request.Email, senhaHash, request.Cargo);
+        var cargo = NormalizarCargo(request.Cargo);
+        var usuario = new Usuario(request.Nome, request.Email, senhaHash, cargo);
 
         await _usuarioRepository.AdicionarAsync(usuario);
         await _unitOfWork.CommitAsync();
@@ -72,5 +73,15 @@ public class AuthService : IAuthService
         var bytes = Encoding.UTF8.GetBytes(senha);
         var hash = sha256.ComputeHash(bytes);
         return Convert.ToBase64String(hash);
+    }
+
+    private static string? NormalizarCargo(string? cargo)
+    {
+        return cargo?.ToLowerInvariant() switch
+        {
+            "admin" or "adm" or "administrador" => "Admin",
+            "user" or "usuario" or "usuário" => "User",
+            _ => cargo
+        };
     }
 }

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Wsm.Aplication.DTOs.Common;
 
@@ -7,6 +8,13 @@ namespace net_maui_api.Controllers;
 [Route("api/[controller]")]
 public abstract class BaseController : ControllerBase
 {
+    protected Guid ObterUsuarioId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
+    }
+
+
     protected IActionResult Success<T>(T data, string message = "Operação realizada com sucesso")
     {
         var response = ApiResponse<T>.Success(data, message);

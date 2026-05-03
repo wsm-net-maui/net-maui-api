@@ -143,6 +143,110 @@ namespace Wsm.Infra.Estrutura.Data.Migrations
                     b.ToTable("Categorias", (string)null);
                 });
 
+            modelBuilder.Entity("Wsm.Domain.Entities.ClientePerfil", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("AtualizadoEm")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Observacoes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("Telefone")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("ClientePerfis", (string)null);
+                });
+
+            modelBuilder.Entity("Wsm.Domain.Entities.FuncionarioPerfil", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("AtualizadoEm")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Descricao")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Especialidade")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("FuncionarioPerfis", (string)null);
+                });
+
+            modelBuilder.Entity("Wsm.Domain.Entities.HorarioAtendimento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("AtualizadoEm")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("DiaSemana")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("FuncionarioPerfilId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<TimeSpan>("HoraFim")
+                        .HasColumnType("time(6)");
+
+                    b.Property<TimeSpan>("HoraInicio")
+                        .HasColumnType("time(6)");
+
+                    b.Property<int>("IntervaloMinutos")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FuncionarioPerfilId");
+
+                    b.ToTable("HorariosAtendimento", (string)null);
+                });
+
             modelBuilder.Entity("Wsm.Domain.Entities.MovimentacaoEstoque", b =>
                 {
                     b.Property<Guid>("Id")
@@ -338,6 +442,41 @@ namespace Wsm.Infra.Estrutura.Data.Migrations
                     b.ToTable("Produtos", (string)null);
                 });
 
+            modelBuilder.Entity("Wsm.Domain.Entities.Servico", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("AtualizadoEm")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Descricao")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("DuracaoMinutos")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<decimal>("Preco")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Servicos", (string)null);
+                });
+
             modelBuilder.Entity("Wsm.Domain.Entities.Usuario", b =>
                 {
                     b.Property<Guid>("Id")
@@ -474,6 +613,39 @@ namespace Wsm.Infra.Estrutura.Data.Migrations
                     b.Navigation("Produto");
                 });
 
+            modelBuilder.Entity("Wsm.Domain.Entities.ClientePerfil", b =>
+                {
+                    b.HasOne("Wsm.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Wsm.Domain.Entities.FuncionarioPerfil", b =>
+                {
+                    b.HasOne("Wsm.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Wsm.Domain.Entities.HorarioAtendimento", b =>
+                {
+                    b.HasOne("Wsm.Domain.Entities.FuncionarioPerfil", "FuncionarioPerfil")
+                        .WithMany("Horarios")
+                        .HasForeignKey("FuncionarioPerfilId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FuncionarioPerfil");
+                });
+
             modelBuilder.Entity("Wsm.Domain.Entities.MovimentacaoEstoque", b =>
                 {
                     b.HasOne("Wsm.Domain.Entities.Produto", "Produto")
@@ -549,6 +721,11 @@ namespace Wsm.Infra.Estrutura.Data.Migrations
             modelBuilder.Entity("Wsm.Domain.Entities.Categoria", b =>
                 {
                     b.Navigation("Produtos");
+                });
+
+            modelBuilder.Entity("Wsm.Domain.Entities.FuncionarioPerfil", b =>
+                {
+                    b.Navigation("Horarios");
                 });
 
             modelBuilder.Entity("Wsm.Domain.Entities.Pedido", b =>

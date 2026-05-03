@@ -23,6 +23,10 @@ namespace net_maui_api.Configuration
             services.AddScoped<IVoucherRepository, VoucherRepository>();
             services.AddScoped<ICarrinhoRepository, CarrinhoRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IFuncionarioPerfilRepository, FuncionarioPerfilRepository>();
+            services.AddScoped<IClientePerfilRepository, ClientePerfilRepository>();
+            services.AddScoped<IServicoRepository, ServicoRepository>();
+            services.AddScoped<IHorarioAtendimentoRepository, HorarioAtendimentoRepository>();
 
             // Services
             services.AddScoped<IAuthService, AuthService>();
@@ -32,6 +36,10 @@ namespace net_maui_api.Configuration
             services.AddScoped<IPedidoService, PedidoService>();
             services.AddScoped<IVoucherService, VoucherService>();
             services.AddScoped<ICarrinhoService, CarrinhoService>();
+            services.AddScoped<IClientePerfilService, ClientePerfilService>();
+            services.AddScoped<IFuncionarioPerfilService, FuncionarioPerfilService>();
+            services.AddScoped<IServicoService, ServicoService>();
+            services.AddScoped<IHorarioAtendimentoService, HorarioAtendimentoService>();
 
             // Infraestrutura
             services.AddScoped<ITokenService, TokenService>();
