@@ -113,12 +113,32 @@ public class Pedido : BaseEntity
     private void RecalcularTotal()
     {
         ValorBruto = _itens.Sum(i => i.CalcularSubtotal());
-        ValorTotal = ValorBruto;
+
+        if (Voucher is not null)
+        {
+            if (Voucher.PodeSerAplicado(ValorBruto, DateTime.UtcNow))
+            {
+                ValorDesconto = Voucher.CalcularDesconto(ValorBruto);
+            }
+            else
+            {
+                VoucherId = null;
+                Voucher = null;
+                ValorDesconto = 0;
+            }
+        }
+        else
+        {
+            ValorDesconto = 0;
+        }
 
         if (ValorDesconto > ValorBruto)
             ValorDesconto = ValorBruto;
 
         ValorTotal = ValorBruto - ValorDesconto;
+
+        if (ValorTotal < 0)
+            ValorTotal = 0;
     }
 
     private static string GerarNumero()

@@ -23,17 +23,17 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 
     public virtual async Task<IEnumerable<TEntity>> ObterTodosAsync()
     {
-        return await _dbSet.ToListAsync();
+        return await _dbSet.AsNoTracking().ToListAsync();
     }
 
     public virtual async Task<IEnumerable<TEntity>> BuscarAsync(Expression<Func<TEntity, bool>> predicado)
     {
-        return await _dbSet.Where(predicado).ToListAsync();
+        return await _dbSet.AsNoTracking().Where(predicado).ToListAsync();
     }
 
     public virtual async Task<TEntity?> ObterPrimeiroAsync(Expression<Func<TEntity, bool>> predicado)
     {
-        return await _dbSet.FirstOrDefaultAsync(predicado);
+        return await _dbSet.AsNoTracking().FirstOrDefaultAsync(predicado);
     }
 
     public virtual async Task AdicionarAsync(TEntity entidade)
@@ -53,11 +53,11 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 
     public virtual async Task<bool> ExisteAsync(Expression<Func<TEntity, bool>> predicado)
     {
-        return await _dbSet.AnyAsync(predicado);
+        return await _dbSet.AsNoTracking().AnyAsync(predicado);
     }
 
     public virtual async Task<int> ContarAsync(Expression<Func<TEntity, bool>> predicado)
     {
-        return await _dbSet.CountAsync(predicado);
+        return await _dbSet.AsNoTracking().CountAsync(predicado);
     }
 }
