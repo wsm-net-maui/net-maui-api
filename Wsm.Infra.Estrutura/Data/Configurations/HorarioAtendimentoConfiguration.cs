@@ -19,5 +19,10 @@ public class HorarioAtendimentoConfiguration : IEntityTypeConfiguration<HorarioA
         builder.Property(h => h.Ativo).IsRequired();
         builder.Property(h => h.CriadoEm).IsRequired();
         builder.Property(h => h.AtualizadoEm);
+
+        builder.HasOne(h => h.Servico)
+               .WithMany()
+               .HasForeignKey(h => h.ServicoId)
+               .OnDelete(DeleteBehavior.Restrict);
     }
 }

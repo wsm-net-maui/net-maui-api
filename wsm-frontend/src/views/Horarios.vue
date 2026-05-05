@@ -1,78 +1,82 @@
 <template>
-  <div class="p-6 max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-6">
+  <div class="p-6 max-w-7xl mx-auto flex flex-col gap-6">
+    <div class="flex items-center justify-between">
       <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-0">Agenda de Horários</h2>
-      <Button label="Novo Horário" icon="pi pi-plus" @click="openNew" />
     </div>
 
-    <div class="bg-surface-0 dark:bg-surface-800 p-4 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700">
-      <DataTable :value="horarios" :loading="loading" dataKey="id" 
-        paginator :rows="10" 
-        :rowsPerPageOptions="[5, 10, 25]"
-        stripedRows responsiveLayout="scroll">
-        
-        <Column field="funcionarioPerfilId" header="ID Funcionário"></Column>
-        <Column field="diaSemana" header="Dia da Semana" :sortable="true">
-          <template #body="slotProps">
-            {{ formatDiaSemana(slotProps.data.diaSemana) }}
-          </template>
-        </Column>
-        <Column field="horaInicio" header="Início"></Column>
-        <Column field="horaFim" header="Fim"></Column>
-        <Column field="ativo" header="Status" :sortable="true">
-          <template #body="slotProps">
-            <Tag :value="slotProps.data.ativo ? 'Ativo' : 'Inativo'" :severity="slotProps.data.ativo ? 'success' : 'danger'" />
-          </template>
-        </Column>
-        <Column :exportable="false" style="min-width: 8rem">
-          <template #body="slotProps">
-            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editHorario(slotProps.data)" />
-            <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteHorario(slotProps.data)" />
-          </template>
-        </Column>
-      </DataTable>
+    <!-- Filter by Funcionario -->
+    <div class="bg-surface-0 dark:bg-surface-800 p-4 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700 flex items-center gap-4">
+      <label class="font-medium text-surface-700 dark:text-surface-300">Selecione o Funcionário:</label>
+      <Dropdown v-model="selectedFuncionario" :options="funcionarios" optionLabel="nome" optionValue="id" 
+                placeholder="Escolha um funcionário..." class="w-full md:w-80" @change="loadHorarios" />
     </div>
 
-    <!-- Dialog Create/Edit -->
-    <Dialog v-model:visible="horarioDialog" :style="{ width: '450px' }" header="Detalhes do Horário" :modal="true" class="p-fluid">
-      <div class="flex flex-col gap-4 py-4">
-        <div class="flex flex-col gap-2">
-          <label for="funcionarioId" class="font-medium">ID do Funcionário (GUID)</label>
-          <InputText id="funcionarioId" v-model.trim="horario.funcionarioPerfilId" required autofocus :invalid="submitted && !horario.funcionarioPerfilId" />
-          <small class="text-red-500" v-if="submitted && !horario.funcionarioPerfilId">Obrigatório.</small>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <label for="diaSemana" class="font-medium">Dia da Semana (0=Dom, 6=Sáb)</label>
-          <InputNumber id="diaSemana" v-model="horario.diaSemana" :min="0" :max="6" :invalid="submitted && horario.diaSemana == null" />
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <label class="font-medium">Selecione os Horários</label>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-60 overflow-y-auto p-2 border border-surface-200 dark:border-surface-700 rounded-lg">
-            <div v-for="slot in timeSlots" :key="slot.label" 
-                 @click="toggleSlot(slot)"
-                 class="p-3 border rounded-lg cursor-pointer text-center font-medium transition-all"
-                 :class="isSelected(slot) ? 'bg-primary text-primary-contrast border-primary shadow-md' : 'bg-surface-0 text-surface-700 dark:bg-surface-800 dark:text-surface-300 hover:border-primary'">
-              {{ slot.label }}
-            </div>
-          </div>
-          <small class="text-red-500" v-if="submitted && selectedSlots.length === 0">Selecione ao menos um horário.</small>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <label for="intervalo" class="font-medium">Intervalo (Minutos)</label>
-          <InputNumber id="intervalo" v-model="horario.intervaloMinutos" />
-        </div>
-
-        <div class="flex items-center gap-2 mt-2" v-if="horario.id">
-          <Checkbox v-model="horario.ativo" inputId="ativo" :binary="true" />
-          <label for="ativo" class="font-medium">Ativo</label>
-        </div>
+    <!-- Grid Layout -->
+    <div v-if="selectedFuncionario" class="bg-surface-0 dark:bg-surface-800 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700 overflow-x-auto relative">
+      <div v-if="loading" class="absolute inset-0 bg-surface-0/50 dark:bg-surface-800/50 z-10 flex items-center justify-center">
+         <i class="pi pi-spinner pi-spin text-3xl text-primary"></i>
       </div>
 
+      <div class="min-w-[800px] grid grid-cols-8 gap-px bg-surface-200 dark:bg-surface-700">
+        <!-- Header -->
+        <div class="bg-surface-100 dark:bg-surface-900 p-3 text-center font-bold text-surface-600 dark:text-surface-300 flex items-center justify-center">
+          Hora
+        </div>
+        <div v-for="dia in diasSemana" :key="dia.value" class="bg-surface-100 dark:bg-surface-900 p-3 text-center font-bold text-surface-600 dark:text-surface-300">
+          {{ dia.label }}
+        </div>
+        
+        <!-- Hours and Cells -->
+        <template v-for="hora in horasDisponiveis" :key="hora.start">
+          <div class="bg-surface-50 dark:bg-surface-800 p-3 text-center text-sm font-medium flex items-center justify-center text-surface-600 dark:text-surface-400">
+            {{ hora.start }}
+          </div>
+          
+          <div v-for="dia in diasSemana" :key="`${dia.value}-${hora.start}`" 
+               class="bg-surface-0 dark:bg-surface-800 min-h-[80px] p-1 relative group cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors"
+               @click="openModal(dia.value, hora)">
+               
+               <template v-if="hasHorario(dia.value, hora.start)">
+                 <div class="absolute inset-1 bg-primary-100 dark:bg-primary-900/40 border border-primary-300 dark:border-primary-700 rounded p-2 flex flex-col shadow-sm"
+                      @click.stop="confirmDeleteHorario(getHorario(dia.value, hora.start))">
+                    <span class="text-xs font-bold text-primary-800 dark:text-primary-300 leading-tight">
+                        {{ getHorario(dia.value, hora.start).servicoNome || 'Serviço' }}
+                    </span>
+                    <i class="pi pi-times absolute top-1 right-1 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full"></i>
+                 </div>
+               </template>
+               <template v-else>
+                  <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-surface-400">
+                      <i class="pi pi-plus-circle text-xl"></i>
+                  </div>
+               </template>
+          </div>
+        </template>
+      </div>
+    </div>
+    
+    <div v-else class="text-center p-12 bg-surface-50 dark:bg-surface-800 rounded-xl border border-dashed border-surface-300 dark:border-surface-600">
+      <i class="pi pi-calendar text-4xl text-surface-400 mb-4"></i>
+      <h3 class="text-xl font-medium text-surface-600 dark:text-surface-300">Selecione um funcionário para visualizar a agenda</h3>
+    </div>
+
+    <!-- Modal Adicionar Horário -->
+    <Dialog v-model:visible="horarioDialog" :style="{ width: '450px' }" header="Adicionar Horário" :modal="true" class="p-fluid">
+      <div class="flex flex-col gap-4 py-4" v-if="slotSelecionado">
+        <div class="bg-surface-100 dark:bg-surface-800 p-3 rounded-lg flex justify-between items-center text-sm">
+          <span><i class="pi pi-calendar mr-2"></i>{{ diasSemana.find(d => d.value === slotSelecionado.diaSemana)?.label }}</span>
+          <span class="font-bold">{{ slotSelecionado.start }} às {{ slotSelecionado.end }}</span>
+        </div>
+        
+        <div class="flex flex-col gap-2">
+          <label for="servico" class="font-medium">Serviço <span class="text-red-500">*</span></label>
+          <Dropdown id="servico" v-model="selectedServico" :options="servicos" optionLabel="nome" optionValue="id" 
+                    placeholder="Selecione um serviço" :invalid="submitted && !selectedServico" />
+          <small class="text-red-500" v-if="submitted && !selectedServico">Por favor, selecione um serviço.</small>
+        </div>
+      </div>
       <template #footer>
-        <Button label="Cancelar" icon="pi pi-times" text @click="hideDialog" />
+        <Button label="Cancelar" icon="pi pi-times" text @click="horarioDialog = false" />
         <Button label="Salvar" icon="pi pi-check" @click="saveHorario" :loading="saving" />
       </template>
     </Dialog>
@@ -80,154 +84,141 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import api from '../services/api';
 import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
 
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
+import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
-import InputText from 'primevue/inputtext';
-import InputNumber from 'primevue/inputnumber';
-import Checkbox from 'primevue/checkbox';
-import Tag from 'primevue/tag';
 
 const toast = useToast();
 const confirm = useConfirm();
 
+const funcionarios = ref([]);
+const servicos = ref([]);
 const horarios = ref([]);
+
+const selectedFuncionario = ref(null);
 const loading = ref(false);
 const saving = ref(false);
 
 const horarioDialog = ref(false);
-const horario = ref({});
+const slotSelecionado = ref(null);
+const selectedServico = ref(null);
 const submitted = ref(false);
 
-const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+const diasSemana = [
+  { label: 'Domingo', value: 0 },
+  { label: 'Segunda', value: 1 },
+  { label: 'Terça', value: 2 },
+  { label: 'Quarta', value: 3 },
+  { label: 'Quinta', value: 4 },
+  { label: 'Sexta', value: 5 },
+  { label: 'Sábado', value: 6 }
+];
 
-const generateSlots = () => {
+const horasDisponiveis = computed(() => {
   const slots = [];
   for (let i = 8; i < 20; i++) {
     const start = i.toString().padStart(2, '0') + ':00';
     const end = (i + 1).toString().padStart(2, '0') + ':00';
-    slots.push({ label: `${start} - ${end}`, start, end });
+    slots.push({ start, end });
   }
   return slots;
-};
+});
 
-const timeSlots = generateSlots();
-const selectedSlots = ref([]);
-
-const toggleSlot = (slot) => {
-  const index = selectedSlots.value.findIndex(s => s.start === slot.start && s.end === slot.end);
-  if (index >= 0) {
-    selectedSlots.value.splice(index, 1);
-  } else {
-    // Se for modo edição de um já existente (tem ID), só pode selecionar 1
-    if (horario.value.id) {
-      selectedSlots.value = [slot];
-    } else {
-      selectedSlots.value.push(slot);
-    }
+onMounted(async () => {
+  try {
+    const [resFunc, resServ] = await Promise.all([
+      api.get('/funcionarios'),
+      api.get('/servicos')
+    ]);
+    funcionarios.value = resFunc.data?.data || resFunc.data || [];
+    servicos.value = resServ.data?.data || resServ.data || [];
+  } catch (err) {
+    console.error('Erro ao buscar dados iniciais', err);
+    toast.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar funcionários/serviços', life: 3000 });
   }
-};
-
-const isSelected = (slot) => {
-  return selectedSlots.value.some(s => s.start === slot.start && s.end === slot.end);
-};
-
-onMounted(() => {
-  loadHorarios();
 });
 
 const loadHorarios = async () => {
+  if (!selectedFuncionario.value) return;
+  
   loading.value = true;
   try {
-    const response = await api.get('/horariosatendimento');
-    horarios.value = response.data?.data || response.data;
+    const response = await api.get(`/horarios/funcionario/${selectedFuncionario.value}`);
+    horarios.value = response.data?.data || response.data || [];
   } catch (error) {
     console.error('Erro ao buscar horários', error);
-    toast.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível carregar os horários.', life: 3000 });
+    toast.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar os horários.', life: 3000 });
   } finally {
     loading.value = false;
   }
 };
 
-const formatDiaSemana = (dia) => {
-  return diasSemana[dia] || dia;
+const hasHorario = (diaSemana, startHora) => {
+  const formatStart = startHora + ':00';
+  return horarios.value.some(h => h.diaSemana === diaSemana && h.horaInicio === formatStart);
 };
 
-const openNew = () => {
-  horario.value = { ativo: true, diaSemana: 1, intervaloMinutos: 30 };
-  selectedSlots.value = [];
+const getHorario = (diaSemana, startHora) => {
+  const formatStart = startHora + ':00';
+  return horarios.value.find(h => h.diaSemana === diaSemana && h.horaInicio === formatStart);
+};
+
+const openModal = (diaSemana, horaObj) => {
+  if (hasHorario(diaSemana, horaObj.start)) return; // Se já tem, deleta clicando no card
+  
+  slotSelecionado.value = { diaSemana, start: horaObj.start, end: horaObj.end };
+  selectedServico.value = null;
   submitted.value = false;
   horarioDialog.value = true;
-};
-
-const hideDialog = () => {
-  horarioDialog.value = false;
-  submitted.value = false;
 };
 
 const saveHorario = async () => {
   submitted.value = true;
-  if (horario.value.funcionarioPerfilId && selectedSlots.value.length > 0) {
-    saving.value = true;
-    try {
-      if (horario.value.id) {
-        // Atualiza o único registro
-        const slot = selectedSlots.value[0];
-        const payload = { ...horario.value, horaInicio: slot.start + ':00', horaFim: slot.end + ':00' };
-        await api.put(`/horariosatendimento/${horario.value.id}`, payload);
-        toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Horário atualizado', life: 3000 });
-      } else {
-        // Cria múltiplos registros (um para cada card selecionado)
-        for (const slot of selectedSlots.value) {
-          const payload = { ...horario.value, horaInicio: slot.start + ':00', horaFim: slot.end + ':00' };
-          await api.post('/horariosatendimento', payload);
-        }
-        toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Horário(s) adicionado(s) com sucesso', life: 3000 });
-      }
-      horarioDialog.value = false;
-      horario.value = {};
-      selectedSlots.value = [];
-      await loadHorarios();
-    } catch (error) {
-      console.error('Erro ao salvar horário', error);
-      toast.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao salvar o horário', life: 3000 });
-    } finally {
-      saving.value = false;
-    }
+  if (!selectedServico.value || !slotSelecionado.value || !selectedFuncionario.value) return;
+  
+  saving.value = true;
+  try {
+    const payload = {
+      funcionarioPerfilId: selectedFuncionario.value,
+      servicoId: selectedServico.value,
+      diaSemana: slotSelecionado.value.diaSemana,
+      horaInicio: slotSelecionado.value.start + ':00',
+      horaFim: slotSelecionado.value.end + ':00',
+      intervaloMinutos: 30
+    };
+    
+    await api.post('/horarios', payload);
+    toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Horário cadastrado', life: 3000 });
+    horarioDialog.value = false;
+    await loadHorarios();
+  } catch (error) {
+    console.error('Erro ao salvar', error);
+    toast.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao cadastrar o horário', life: 3000 });
+  } finally {
+    saving.value = false;
   }
 };
 
-const editHorario = (data) => {
-  horario.value = { ...data };
-  
-  const start = data.horaInicio?.substring(0, 5) || '';
-  const end = data.horaFim?.substring(0, 5) || '';
-  selectedSlots.value = [{ label: `${start} - ${end}`, start, end }];
-  
-  horarioDialog.value = true;
-};
-
-const confirmDeleteHorario = (data) => {
+const confirmDeleteHorario = (horarioObj) => {
   confirm.require({
-    message: `Tem certeza que deseja excluir o horário selecionado?`,
+    message: 'Tem certeza que deseja liberar este horário?',
     header: 'Confirmação',
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: 'Sim',
     rejectLabel: 'Não',
     accept: async () => {
       try {
-        await api.delete(`/horariosatendimento/${data.id}`);
-        toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Horário excluído', life: 3000 });
+        await api.delete(`/horarios/${horarioObj.id}`);
+        toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Horário liberado', life: 3000 });
         await loadHorarios();
       } catch (error) {
         console.error('Erro ao excluir', error);
-        toast.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao excluir o horário', life: 3000 });
+        toast.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao liberar horário', life: 3000 });
       }
     }
   });

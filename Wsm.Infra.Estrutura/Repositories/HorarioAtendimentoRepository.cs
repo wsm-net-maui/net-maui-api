@@ -11,6 +11,8 @@ public class HorarioAtendimentoRepository : Repository<HorarioAtendimento>, IHor
 
     public async Task<IEnumerable<HorarioAtendimento>> ObterPorFuncionarioPerfilIdAsync(Guid funcionarioPerfilId)
     {
-        return await _dbSet.Where(h => h.FuncionarioPerfilId == funcionarioPerfilId).ToListAsync();
+        return await _dbSet.Include(h => h.Servico)
+                           .Where(h => h.FuncionarioPerfilId == funcionarioPerfilId)
+                           .ToListAsync();
     }
 }

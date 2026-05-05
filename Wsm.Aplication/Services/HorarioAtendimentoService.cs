@@ -31,7 +31,7 @@ public class HorarioAtendimentoService : IHorarioAtendimentoService
 
     public async Task<HorarioAtendimentoResponseDto> CriarAsync(HorarioAtendimentoCreateDto dto)
     {
-        var horario = new HorarioAtendimento(dto.FuncionarioPerfilId, dto.DiaSemana, dto.HoraInicio, dto.HoraFim, dto.IntervaloMinutos);
+        var horario = new HorarioAtendimento(dto.FuncionarioPerfilId, dto.ServicoId, dto.DiaSemana, dto.HoraInicio, dto.HoraFim, dto.IntervaloMinutos);
         await _repository.AdicionarAsync(horario);
         await _unitOfWork.CommitAsync();
         return ToResponseDto(horario);
@@ -40,7 +40,7 @@ public class HorarioAtendimentoService : IHorarioAtendimentoService
     public async Task AtualizarAsync(Guid id, HorarioAtendimentoUpdateDto dto)
     {
         var horario = await _repository.ObterPorIdAsync(id) ?? throw new KeyNotFoundException($"HorarioAtendimento {id} nao encontrado.");
-        horario.Atualizar(dto.DiaSemana, dto.HoraInicio, dto.HoraFim, dto.IntervaloMinutos);
+        horario.Atualizar(dto.ServicoId, dto.DiaSemana, dto.HoraInicio, dto.HoraFim, dto.IntervaloMinutos);
         _repository.Atualizar(horario);
         await _unitOfWork.CommitAsync();
     }
@@ -56,6 +56,8 @@ public class HorarioAtendimentoService : IHorarioAtendimentoService
     {
         Id = h.Id,
         FuncionarioPerfilId = h.FuncionarioPerfilId,
+        ServicoId = h.ServicoId,
+        ServicoNome = h.Servico?.Nome,
         DiaSemana = h.DiaSemana,
         HoraInicio = h.HoraInicio,
         HoraFim = h.HoraFim,
